@@ -76,16 +76,16 @@ export const OverlandSetup = ({ driverId, onComplete }: OverlandSetupProps) => {
           </div>
         </div>
 
-        {/* Step 2: Configure */}
+        {/* Step 2: Configure Connection */}
         <div className="setup-section">
           <div className="section-title">
             <span className="step-badge">2</span>
-            <h2>Configure Overland Settings</h2>
+            <h2>Configure Server Connection</h2>
           </div>
 
           <div className="config-card">
             <div className="config-item">
-              <label>Receiver Endpoint</label>
+              <label>Server URL</label>
               <div className="input-copy-group">
                 <input
                   type="text"
@@ -101,7 +101,7 @@ export const OverlandSetup = ({ driverId, onComplete }: OverlandSetupProps) => {
                 </button>
               </div>
               <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px', marginBottom: '0' }}>
-                In Overland settings, paste this into the "Receiver Endpoint" field
+                Paste this into Overland's "Server URL" field
               </p>
             </div>
 
@@ -122,37 +122,37 @@ export const OverlandSetup = ({ driverId, onComplete }: OverlandSetupProps) => {
                 </button>
               </div>
               <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px', marginBottom: '0' }}>
-                In Overland settings, paste this into the "Device ID" field
+                Paste this into Overland's "Device ID" field
               </p>
             </div>
           </div>
         </div>
 
-        {/* Step 3: Tracking Settings */}
+        {/* Step 3: Location Settings */}
         <div className="setup-section">
           <div className="section-title">
             <span className="step-badge">3</span>
-            <h2>Recommended Settings</h2>
+            <h2>Configure Location Settings</h2>
           </div>
           <ul className="checklist">
-            <li>Monitoring: Enable "Significant Location Changes"</li>
-            <li>Trip Mode: Enable for real-time tracking during drives</li>
-            <li>Batch Size: Set to 1 for instant updates</li>
-            <li>Grant "Always" location permission</li>
+            <li>Tracking Mode: Set to "Standard" (for detailed tracking)</li>
+            <li>Desired Accuracy: Set to "Best" or "Nav"</li>
+            <li>Logging Mode: Set to "All Data"</li>
+            <li>Locations per Batch: 50-200 (lower = more frequent uploads)</li>
           </ul>
         </div>
 
-        {/* Step 4: Enable */}
+        {/* Step 4: Enable Tracking */}
         <div className="setup-section">
           <div className="section-title">
             <span className="step-badge">4</span>
-            <h2>Start Tracking</h2>
+            <h2>Enable Tracking</h2>
           </div>
           <ul className="checklist">
-            <li>Tap "Start Tracking" in Overland</li>
-            <li>Enable "Trip Mode" when driving</li>
-            <li>Your location will appear on the map</li>
-            <li>Check the app shows "OK" status for uploads</li>
+            <li>Grant "Always" location permission in iOS Settings</li>
+            <li>Toggle "Tracking Enabled" to ON in Overland</li>
+            <li>Your location will appear on the crew map</li>
+            <li>Check app shows successful uploads</li>
           </ul>
         </div>
 

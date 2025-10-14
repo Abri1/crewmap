@@ -27,24 +27,41 @@ After joining a crew in Crew Map, you'll see a setup screen with:
 
 Open Overland app and go to Settings:
 
-1. **Receiver Endpoint**: Paste your webhook URL
-   - Format: `https://crewmap.vercel.app/api/overland-webhook`
+#### Server Connection:
+1. **Server URL**: Paste your webhook URL
+   - Example: `https://crewmap.vercel.app/api/overland-webhook`
 
 2. **Device ID**: Paste your driver UUID
    - This links your location data to your crew profile
 
-3. **Recommended Settings**:
-   - **Monitoring**: Enable "Significant Location Changes"
-   - **Trip Mode**: Enable for real-time tracking during drives
-   - **Batch Size**: Set to 1 for instant updates (or higher for battery saving)
-   - **Location Permission**: Grant "Always" access
+3. **Access Token**: Leave blank (not required)
+
+#### Location Settings:
+1. **Tracking Mode**: Set to "Standard" (for detailed tracking)
+   - "Significant Location" uses less battery but updates less frequently
+   - "Both" provides a balance
+
+2. **Desired Accuracy**: Set to "Best" or "Nav"
+   - "Best" = Most accurate, uses more battery
+   - "Nav" = Good balance for driving
+   - Lower accuracy = battery saving
+
+3. **Logging Mode**: Set to "All Data"
+   - Sends comprehensive location information
+   - Alternative: "Only Latest" (sends just current position)
+
+4. **Locations per Batch**: 50-200 recommended
+   - Lower number = more frequent uploads (better real-time)
+   - Higher number = less battery usage
+
+5. **Location Permission**: Grant "Always" access in iOS Settings
 
 ### 4. Start Tracking
 
-1. Tap "Start Tracking" in Overland
-2. Enable "Trip Mode" when you're actively driving
-3. Your location will appear on the crew map in real-time
-4. Check that the app shows "OK" status for uploads
+1. Toggle **"Tracking Enabled"** to ON in Overland
+2. Your location will appear on the crew map
+3. Check that the app shows successful uploads in the log
+4. For best results while driving, use "Standard" tracking mode
 
 ## How It Works
 
@@ -74,17 +91,20 @@ Overland sends location data to our webhook as GeoJSON:
 
 ### Location not showing on map?
 
-1. **Check Overland status**: Look for "OK" in upload status
-2. **Verify Device ID**: Must exactly match your driver UUID
-3. **Check permissions**: Ensure "Always" location access
-4. **Enable Trip Mode**: For frequent updates while driving
-5. **Test webhook**: Look for "OK" response in Overland logs
+1. **Check Overland status**: Look for successful uploads in the app log
+2. **Verify Server URL**: Must be exact: `https://crewmap.vercel.app/api/overland-webhook`
+3. **Verify Device ID**: Must exactly match your driver UUID (copy/paste from setup screen)
+4. **Check permissions**: Ensure "Always" location access in iOS Settings
+5. **Enable Tracking**: Toggle "Tracking Enabled" to ON in Overland
+6. **Check Tracking Mode**: Set to "Standard" for real-time updates
+7. **Test webhook**: Look for `{"result":"ok"}` response in Overland logs
 
 ### Battery drain?
 
-- Increase **Batch Size** to send fewer requests
-- Use "Significant Location Changes" instead of continuous tracking
-- Only enable "Trip Mode" when actively driving
+- Increase **Locations per Batch** to send fewer requests (e.g., 500-1000)
+- Use "Significant Location" tracking mode instead of "Standard"
+- Lower **Desired Accuracy** to "100m" or "1km"
+- Disable **Visit Tracking** if not needed
 
 ### Offline tracking?
 
