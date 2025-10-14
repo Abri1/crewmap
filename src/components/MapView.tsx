@@ -68,9 +68,7 @@ export const MapView = ({ currentPosition, currentDriverId, drivers, locations, 
       dragRotate: false, // Disable rotation
       pitchWithRotate: false, // Disable tilt
       touchPitch: false, // Disable pitch on touch
-      touchZoomRotate: {
-        rotate: false, // Disable rotation with pinch
-      },
+      touchZoomRotate: true, // Enable touch zoom but rotation is disabled via dragRotate
     })
 
     // Disable pitch and rotation completely

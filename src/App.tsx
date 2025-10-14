@@ -198,12 +198,11 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null)
 
-  const { position, status: geoStatus, accuracy } = useGeolocation({
+  const { position, status: geoStatus } = useGeolocation({
     enabled: !!localDriver,
     minDistance: 10,
   })
 
-  const locationSyncIntervalRef = useRef<number>()
   const recenterFnRef = useRef<(() => void) | null>(null)
 
   // Smart sync state tracking
@@ -525,6 +524,7 @@ function App() {
     : 0
 
   // Connection quality
+  const accuracy = position?.accuracy
   const connectionQuality = accuracy
     ? accuracy < 10
       ? 'excellent'
