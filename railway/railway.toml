@@ -1,0 +1,20 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "railway/Dockerfile"
+
+[deploy]
+startCommand = "docker-compose -f railway/docker-compose.yml up -d"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[[services]]
+name = "traccar"
+source = "traccar/traccar:latest"
+
+  [services.healthcheck]
+  path = "/api/server"
+  port = 8082
+
+[[services]]
+name = "postgres"
+source = "postgres:15-alpine"

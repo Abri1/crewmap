@@ -1,0 +1,69 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "name": "Traccar GPS Server",
+  "description": "Private Traccar GPS tracking server with PostgreSQL database for Crew Map",
+  "repository": "https://github.com/Abri1/crewmap",
+  "services": [
+    {
+      "name": "traccar",
+      "image": "traccar/traccar:latest",
+      "restart": "unless-stopped",
+      "ports": [
+        {
+          "containerPort": 8082,
+          "protocol": "TCP"
+        },
+        {
+          "containerPort": 5055,
+          "protocol": "TCP"
+        }
+      ],
+      "volumes": [
+        {
+          "mountPath": "/opt/traccar/data",
+          "name": "traccar-data"
+        },
+        {
+          "mountPath": "/opt/traccar/logs",
+          "name": "traccar-logs"
+        }
+      ],
+      "env": {
+        "JAVA_OPTS": "-Xms512m -Xmx512m"
+      },
+      "healthcheck": {
+        "path": "/api/server",
+        "port": 8082
+      }
+    },
+    {
+      "name": "postgres",
+      "image": "postgres:15-alpine",
+      "restart": "unless-stopped",
+      "env": {
+        "POSTGRES_DB": "traccar",
+        "POSTGRES_USER": "traccar",
+        "POSTGRES_PASSWORD": "${DATABASE_PASSWORD}"
+      },
+      "volumes": [
+        {
+          "mountPath": "/var/lib/postgresql/data",
+          "name": "postgres-data"
+        }
+      ],
+      "healthcheck": {
+        "command": ["pg_isready", "-U", "traccar"],
+        "interval": 10,
+        "timeout": 5,
+        "retries": 5
+      }
+    }
+  ],
+  "variables": {
+    "DATABASE_PASSWORD": {
+      "description": "Password for PostgreSQL database",
+      "required": true,
+      "generator": "secret"
+    }
+  }
+}

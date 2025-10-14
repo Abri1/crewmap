@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE properties SYSTEM 'http://java.sun.com/dtd/properties.dtd'>
+<properties>
+    <!-- Database Configuration - PostgreSQL -->
+    <entry key='database.driver'>org.postgresql.Driver</entry>
+    <entry key='database.url'>jdbc:postgresql://db:5432/traccar</entry>
+    <entry key='database.user'>traccar</entry>
+    <entry key='database.password'>${DATABASE_PASSWORD}</entry>
+
+    <!-- Server Configuration -->
+    <entry key='web.port'>8082</entry>
+    <entry key='geocoder.enable'>true</entry>
+    <entry key='geocoder.type'>nominatim</entry>
+
+    <!-- Device Communication Ports -->
+    <!-- OsmAnd Protocol (Traccar Client) -->
+    <entry key='osmand.port'>5055</entry>
+
+    <!-- Performance -->
+    <entry key='database.changelog'>./schema/changelog-master.xml</entry>
+    <entry key='logger.console'>true</entry>
+
+    <!-- CORS for web interface -->
+    <entry key='web.origin'>*</entry>
+</properties>

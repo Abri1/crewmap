@@ -144,13 +144,29 @@ npm run lint
 
 ## Deployment
 
-Build and deploy to any static hosting provider (Vercel, Netlify, etc.):
+### Deploy Web App to Vercel
 
 ```bash
 npm run build
 ```
 
 The `dist/` folder contains your production-ready PWA.
+
+Or use Vercel CLI:
+```bash
+vercel --prod
+```
+
+### Deploy Traccar Server to Railway
+
+See [TRACCAR_RAILWAY_SETUP.md](./TRACCAR_RAILWAY_SETUP.md) for complete instructions.
+
+Quick deploy:
+1. Fork this repo
+2. Click: [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/Abri1/crewmap)
+3. Set `DATABASE_PASSWORD` environment variable
+4. Wait 2-3 minutes for deployment
+5. Note your Railway URL (e.g., `https://your-app.railway.app`)
 
 ## Environment Variables
 

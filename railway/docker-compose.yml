@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  traccar:
+    image: traccar/traccar:latest
+    container_name: traccar
+    hostname: traccar
+    restart: unless-stopped
+    ports:
+      - "8082:8082"   # Web interface
+      - "5055:5055"   # Default device port (OsmAnd protocol)
+    volumes:
+      - traccar-data:/opt/traccar/data:rw
+      - traccar-logs:/opt/traccar/logs:rw
+    environment:
+      - JAVA_OPTS=-Xms512m -Xmx512m
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    container_name: traccar-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=traccar
+      - POSTGRES_USER=traccar
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U traccar"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  traccar-data:
+  traccar-logs:
+  postgres-data:
