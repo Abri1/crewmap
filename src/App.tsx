@@ -3,9 +3,7 @@ import { OnboardingScreen } from './components/OnboardingScreen'
 import { MapView } from './components/MapView'
 import { supabase } from './lib/supabase'
 import { storage } from './lib/storage'
-import { useGeolocation } from './hooks/useGeolocation'
 import type { Driver, Location, LocalDriverData } from './types'
-import type { GeoPosition } from './hooks/useGeolocation'
 import './App.css'
 
 // Color palette for drivers
@@ -13,16 +11,6 @@ const DRIVER_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
   '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788',
 ]
-
-// Intelligent sync configuration
-const SYNC_CONFIG = {
-  MOVEMENT_THRESHOLD: 10,        // meters - minimum movement to trigger sync
-  SPEED_CHANGE_THRESHOLD: 5,     // km/h - minimum speed change to trigger sync
-  HEADING_CHANGE_THRESHOLD: 15,  // degrees - minimum heading change to trigger sync
-  MAX_SYNC_INTERVAL: 30000,      // ms - maximum time between syncs (heartbeat)
-  STOPPED_THRESHOLD: 2,          // km/h - speed below this = stopped
-  MIN_ACCURACY: 100,             // meters - don't sync if accuracy is worse
-}
 
 function generateCrewCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -110,85 +98,6 @@ function formatTimeSince(timestamp: string): string {
   return `${daysSince}d ago`
 }
 
-// Intelligent sync decision function
-function shouldSync(
-  currentPosition: GeoPosition,
-  lastSynced: {
-    latitude: number
-    longitude: number
-    speed: number | null
-    heading: number | null
-    timestamp: number
-  } | null,
-  lastSyncTimestamp: number,
-  isCurrentlyMoving: boolean
-): { shouldSync: boolean; reason: string } {
-  // Check accuracy first - don't sync poor quality data
-  if (currentPosition.accuracy && currentPosition.accuracy > SYNC_CONFIG.MIN_ACCURACY) {
-    return { shouldSync: false, reason: 'Poor GPS accuracy' }
-  }
-
-  // First position always syncs
-  if (!lastSynced) {
-    return { shouldSync: true, reason: 'First position' }
-  }
-
-  const timeSinceLastSync = Date.now() - lastSyncTimestamp
-
-  // Heartbeat - maximum interval (prevents appearing offline)
-  if (timeSinceLastSync >= SYNC_CONFIG.MAX_SYNC_INTERVAL) {
-    return { shouldSync: true, reason: 'Heartbeat' }
-  }
-
-  // Calculate distance moved
-  const distance = calculateDistanceBetweenPoints(
-    lastSynced.latitude,
-    lastSynced.longitude,
-    currentPosition.latitude,
-    currentPosition.longitude
-  )
-
-  // Significant movement
-  if (distance >= SYNC_CONFIG.MOVEMENT_THRESHOLD) {
-    return { shouldSync: true, reason: `Moved ${distance.toFixed(0)}m` }
-  }
-
-  // Speed change
-  const lastSpeed = (lastSynced.speed || 0) * 3.6 // Convert to km/h
-  const currentSpeed = (currentPosition.speed || 0) * 3.6
-  const speedChange = Math.abs(currentSpeed - lastSpeed)
-
-  if (speedChange >= SYNC_CONFIG.SPEED_CHANGE_THRESHOLD) {
-    return { shouldSync: true, reason: `Speed Δ${speedChange.toFixed(0)}km/h` }
-  }
-
-  // Heading change (only check if both values exist)
-  if (currentPosition.heading !== null && lastSynced.heading !== null) {
-    let headingChange = Math.abs(currentPosition.heading - lastSynced.heading)
-    // Handle 360° wraparound (e.g., 355° to 5° is 10°, not 350°)
-    if (headingChange > 180) {
-      headingChange = 360 - headingChange
-    }
-
-    if (headingChange >= SYNC_CONFIG.HEADING_CHANGE_THRESHOLD) {
-      return { shouldSync: true, reason: `Direction Δ${headingChange.toFixed(0)}°` }
-    }
-  }
-
-  // State transition: stopped → moving
-  const nowMoving = currentSpeed > SYNC_CONFIG.STOPPED_THRESHOLD
-
-  if (!isCurrentlyMoving && nowMoving) {
-    return { shouldSync: true, reason: 'Started moving' }
-  }
-
-  if (isCurrentlyMoving && !nowMoving) {
-    return { shouldSync: true, reason: 'Stopped' }
-  }
-
-  return { shouldSync: false, reason: 'No significant change' }
-}
-
 function App() {
   const [localDriver, setLocalDriver] = useState<LocalDriverData | null>(null)
   const [drivers, setDrivers] = useState<Driver[]>([])
@@ -198,24 +107,10 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null)
 
-  const { position, status: geoStatus } = useGeolocation({
-    enabled: !!localDriver,
-    minDistance: 10,
-  })
+  // Browser geolocation disabled - using Traccar native apps only
+  const position: { latitude: number; longitude: number; speed: number | null; accuracy: number | null } | null = null
 
   const recenterFnRef = useRef<(() => void) | null>(null)
-
-  // Smart sync state tracking
-  const lastSyncedPosition = useRef<{
-    latitude: number
-    longitude: number
-    speed: number | null
-    heading: number | null
-    timestamp: number
-  } | null>(null)
-  const lastSyncTime = useRef<number>(0)
-  const isMoving = useRef<boolean>(false)
-  const [lastSyncReason, setLastSyncReason] = useState<string>('')
 
   // Update clock every second
   useEffect(() => {
@@ -338,63 +233,8 @@ function App() {
     }
   }, [localDriver])
 
-  // Intelligent location sync to Supabase
-  useEffect(() => {
-    if (!localDriver || !position || geoStatus !== 'watching') return
-
-    const syncDecision = shouldSync(
-      position,
-      lastSyncedPosition.current,
-      lastSyncTime.current,
-      isMoving.current
-    )
-
-    // Log decision for debugging
-    console.log(`[Sync Decision] ${syncDecision.reason} - ${syncDecision.shouldSync ? '✓ SYNC' : '✗ Skip'}`)
-
-    if (!syncDecision.shouldSync) {
-      return // Skip this sync
-    }
-
-    const syncLocation = async () => {
-      try {
-        await supabase.from('locations').insert({
-          driver_id: localDriver.driverId,
-          crew_id: localDriver.crewId,
-          latitude: position.latitude,
-          longitude: position.longitude,
-          accuracy: position.accuracy,
-          speed: position.speed,
-          heading: position.heading,
-          timestamp: new Date(position.timestamp).toISOString(),
-        })
-
-        // Update last_seen
-        await supabase
-          .from('drivers')
-          .update({ last_seen: new Date().toISOString() })
-          .eq('id', localDriver.driverId)
-
-        // Update sync tracking
-        lastSyncedPosition.current = {
-          latitude: position.latitude,
-          longitude: position.longitude,
-          speed: position.speed,
-          heading: position.heading,
-          timestamp: position.timestamp,
-        }
-        lastSyncTime.current = Date.now()
-        isMoving.current = (position.speed || 0) * 3.6 > SYNC_CONFIG.STOPPED_THRESHOLD
-        setLastSyncReason(syncDecision.reason)
-
-        console.log(`[Sync] ✓ Location synced: ${syncDecision.reason}`)
-      } catch (error) {
-        console.error('Error syncing location:', error)
-      }
-    }
-
-    syncLocation()
-  }, [localDriver, position, geoStatus])
+  // Browser location sync disabled - using Traccar webhook instead
+  // Location data comes from /api/traccar-webhook endpoint
 
   const handleJoinCrew = useCallback(async (code: string, nickname: string) => {
     // Check if crew exists
@@ -517,23 +357,14 @@ function App() {
   // Calculate stats
   const myLocations = locations[localDriver.driverId] || []
   const myDistance = calculateDistance(myLocations)
-  const mySpeed = position?.speed ? Math.round(position.speed * 3.6) : 0 // m/s to km/h
+  const mySpeed = 0 // Speed only available from Traccar, not in browser view
   const firstLocation = myLocations[0]
   const timeOnRoad = firstLocation
     ? Math.floor((Date.now() - new Date(firstLocation.timestamp).getTime()) / 1000 / 60)
     : 0
 
-  // Connection quality
-  const accuracy = position?.accuracy
-  const connectionQuality = accuracy
-    ? accuracy < 10
-      ? 'excellent'
-      : accuracy < 20
-      ? 'good'
-      : accuracy < 50
-      ? 'fair'
-      : 'poor'
-    : 'unknown'
+  // Connection quality (always unknown since no browser GPS)
+  const connectionQuality = 'unknown'
 
   const handleDriverClick = (driverId: string) => {
     setSelectedDriverId(driverId)
@@ -542,9 +373,7 @@ function App() {
   const selectedDriver = selectedDriverId ? drivers.find(d => d.id === selectedDriverId) : null
   const selectedDriverLocations = selectedDriverId ? locations[selectedDriverId] || [] : []
   const selectedDriverDistance = calculateDistance(selectedDriverLocations)
-  const selectedDriverSpeed = selectedDriver?.id === localDriver.driverId && position?.speed
-    ? Math.round(position.speed * 3.6)
-    : 0
+  const selectedDriverSpeed = 0 // Speed only available from Traccar, not in browser view
   const selectedDriverTimeOnRoad = selectedDriverLocations[0]
     ? Math.floor((Date.now() - new Date(selectedDriverLocations[0].timestamp).getTime()) / 1000 / 60)
     : 0
@@ -554,11 +383,7 @@ function App() {
   return (
     <div className="app-container">
       <MapView
-        currentPosition={
-          position
-            ? { latitude: position.latitude, longitude: position.longitude }
-            : null
-        }
+        currentPosition={null} // Position only from Traccar, not browser
         currentDriverId={localDriver.driverId}
         drivers={drivers}
         locations={locations}
@@ -631,11 +456,9 @@ function App() {
                 <div>
                   <div className="profile-name">{localDriver.nickname}</div>
                   <div className="profile-subtitle">Code: {localDriver.crewCode}</div>
-                  {lastSyncReason && (
-                    <div className="profile-subtitle" style={{ marginTop: '4px', fontSize: '11px', opacity: 0.7 }}>
-                      Last sync: {lastSyncReason}
-                    </div>
-                  )}
+                  <div className="profile-subtitle" style={{ marginTop: '4px', fontSize: '11px', opacity: 0.7 }}>
+                    Using Traccar GPS
+                  </div>
                 </div>
               </div>
               <div className="stats-grid">
