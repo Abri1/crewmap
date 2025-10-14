@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { OnboardingScreen } from './components/OnboardingScreen'
+import { TraccarSetup } from './components/TraccarSetup'
 import { MapView } from './components/MapView'
 import { supabase } from './lib/supabase'
 import { storage } from './lib/storage'
@@ -106,6 +107,7 @@ function App() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [menuOpen, setMenuOpen] = useState(false)
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null)
+  const [showTraccarSetup, setShowTraccarSetup] = useState(false)
 
   // Browser geolocation disabled - using Traccar native apps only
   const position: { latitude: number; longitude: number; speed: number | null; accuracy: number | null } | null = null
@@ -285,6 +287,7 @@ function App() {
 
     storage.setDriverData(driverData)
     setLocalDriver(driverData)
+    setShowTraccarSetup(true)
   }, [])
 
   const handleCreateCrew = useCallback(async (crewName: string, nickname: string) => {
@@ -331,6 +334,7 @@ function App() {
 
     storage.setDriverData(driverData)
     setLocalDriver(driverData)
+    setShowTraccarSetup(true)
   }, [])
 
   const handleRecenterReady = useCallback((fn: () => void) => {
@@ -350,6 +354,17 @@ function App() {
       <OnboardingScreen
         onJoinCrew={handleJoinCrew}
         onCreateCrew={handleCreateCrew}
+      />
+    )
+  }
+
+  // Show Traccar setup screen after joining/creating crew
+  if (showTraccarSetup) {
+    return (
+      <TraccarSetup
+        driverId={localDriver.driverId}
+        nickname={localDriver.nickname}
+        onComplete={() => setShowTraccarSetup(false)}
       />
     )
   }
