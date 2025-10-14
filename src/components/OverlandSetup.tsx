@@ -1,15 +1,15 @@
 import { useState } from 'react'
-import './TraccarSetup.css'
+import './OverlandSetup.css'
 
-interface TraccarSetupProps {
+interface OverlandSetupProps {
   driverId: string
   nickname: string
   onComplete: () => void
 }
 
-export const TraccarSetup = ({ driverId, onComplete }: TraccarSetupProps) => {
+export const OverlandSetup = ({ driverId, onComplete }: OverlandSetupProps) => {
   const [copied, setCopied] = useState<'id' | 'url' | null>(null)
-  const serverUrl = `${window.location.origin}/api/traccar-webhook`
+  const serverUrl = `${window.location.origin}/api/overland-webhook`
 
   const handleCopy = async (text: string, type: 'id' | 'url') => {
     try {
@@ -30,23 +30,23 @@ export const TraccarSetup = ({ driverId, onComplete }: TraccarSetupProps) => {
   }
 
   return (
-    <div className="traccar-setup-overlay">
-      <div className="traccar-setup-container">
+    <div className="overland-setup-overlay">
+      <div className="overland-setup-container">
         <div className="setup-header">
           <div className="setup-icon">📍</div>
           <h1>Setup GPS Tracking</h1>
-          <p>Install Traccar to share your location with the crew</p>
+          <p>Install Overland to share your location with the crew</p>
         </div>
 
         {/* Step 1: Download */}
         <div className="setup-section">
           <div className="section-title">
             <span className="step-badge">1</span>
-            <h2>Download Traccar App</h2>
+            <h2>Download Overland App</h2>
           </div>
           <div className="download-grid">
             <a
-              href="https://apps.apple.com/app/traccar-client/id843156974"
+              href="https://apps.apple.com/us/app/overland-gps-tracker/id1292426766"
               target="_blank"
               rel="noopener noreferrer"
               className="download-card"
@@ -60,7 +60,7 @@ export const TraccarSetup = ({ driverId, onComplete }: TraccarSetupProps) => {
               </div>
             </a>
             <a
-              href="https://play.google.com/store/apps/details?id=org.traccar.client"
+              href="https://play.google.com/store/apps/details?id=com.openhumans.app.overland"
               target="_blank"
               rel="noopener noreferrer"
               className="download-card"
@@ -80,33 +80,12 @@ export const TraccarSetup = ({ driverId, onComplete }: TraccarSetupProps) => {
         <div className="setup-section">
           <div className="section-title">
             <span className="step-badge">2</span>
-            <h2>Enter These Settings in Traccar</h2>
+            <h2>Configure Overland Settings</h2>
           </div>
 
           <div className="config-card">
             <div className="config-item">
-              <label>Device Identifier (or "Identifier")</label>
-              <div className="input-copy-group">
-                <input
-                  type="text"
-                  value={driverId}
-                  readOnly
-                  className="config-input"
-                />
-                <button
-                  onClick={() => handleCopy(driverId, 'id')}
-                  className={`copy-btn ${copied === 'id' ? 'copied' : ''}`}
-                >
-                  {copied === 'id' ? '✓' : '📋'}
-                </button>
-              </div>
-              <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px', marginBottom: '0' }}>
-                In Traccar, this field might be called "Device Identifier", "Identifier", or "Device ID"
-              </p>
-            </div>
-
-            <div className="config-item">
-              <label>Server URL</label>
+              <label>Receiver Endpoint</label>
               <div className="input-copy-group">
                 <input
                   type="text"
@@ -122,23 +101,44 @@ export const TraccarSetup = ({ driverId, onComplete }: TraccarSetupProps) => {
                 </button>
               </div>
               <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px', marginBottom: '0' }}>
-                In Traccar, this is the "Server URL" or "Server Address" field
+                In Overland settings, paste this into the "Receiver Endpoint" field
+              </p>
+            </div>
+
+            <div className="config-item">
+              <label>Device ID</label>
+              <div className="input-copy-group">
+                <input
+                  type="text"
+                  value={driverId}
+                  readOnly
+                  className="config-input"
+                />
+                <button
+                  onClick={() => handleCopy(driverId, 'id')}
+                  className={`copy-btn ${copied === 'id' ? 'copied' : ''}`}
+                >
+                  {copied === 'id' ? '✓' : '📋'}
+                </button>
+              </div>
+              <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px', marginBottom: '0' }}>
+                In Overland settings, paste this into the "Device ID" field
               </p>
             </div>
           </div>
         </div>
 
-        {/* Step 3: Configure Traccar Settings */}
+        {/* Step 3: Tracking Settings */}
         <div className="setup-section">
           <div className="section-title">
             <span className="step-badge">3</span>
-            <h2>Configure Traccar Settings</h2>
+            <h2>Recommended Settings</h2>
           </div>
           <ul className="checklist">
-            <li>Set Frequency to 5 seconds (for real-time tracking)</li>
-            <li>Set Distance to 0 meters</li>
-            <li>Set Angle to 0 degrees</li>
-            <li>Keep Location Provider on "Mixed"</li>
+            <li>Monitoring: Enable "Significant Location Changes"</li>
+            <li>Trip Mode: Enable for real-time tracking during drives</li>
+            <li>Batch Size: Set to 1 for instant updates</li>
+            <li>Grant "Always" location permission</li>
           </ul>
         </div>
 
@@ -146,13 +146,13 @@ export const TraccarSetup = ({ driverId, onComplete }: TraccarSetupProps) => {
         <div className="setup-section">
           <div className="section-title">
             <span className="step-badge">4</span>
-            <h2>Enable Tracking</h2>
+            <h2>Start Tracking</h2>
           </div>
           <ul className="checklist">
-            <li>Grant location permission (select "Always")</li>
-            <li>Toggle service status to ON (green)</li>
-            <li>You'll see a tracking notification appear</li>
-            <li>Check status shows "Location update..."</li>
+            <li>Tap "Start Tracking" in Overland</li>
+            <li>Enable "Trip Mode" when driving</li>
+            <li>Your location will appear on the map</li>
+            <li>Check the app shows "OK" status for uploads</li>
           </ul>
         </div>
 

@@ -1,22 +1,25 @@
 # Crew Map
 
-A real-time location tracking PWA for truck driver crews. Built with React, TypeScript, Mapbox GL JS, and Supabase.
+A real-time location tracking PWA for truck driver crews. Built with React, TypeScript, Mapbox GL JS, Supabase, and Overland GPS.
 
 ## Features
 
 - **Real-time GPS tracking** - See your crew's live locations and breadcrumb trails
+- **Native GPS app** - Uses Overland iOS app for accurate, battery-efficient tracking
 - **No signup required** - Just create or join a crew with a simple code
 - **Full-screen satellite map** - Top-down, north-up view with zoom-only controls
 - **Color-coded drivers** - Each driver gets a unique color for easy identification
 - **PWA support** - Install on mobile devices for a native app experience
-- **Offline-ready** - Queues location updates when offline
+- **Privacy-focused** - You control where your location data goes
 
 ## Tech Stack
 
 - **Frontend**: React 19 + TypeScript + Vite
 - **Map**: Mapbox GL JS (satellite-streets style)
 - **Backend**: Supabase (PostgreSQL + Realtime)
+- **GPS Tracking**: Overland iOS app via webhook
 - **PWA**: vite-plugin-pwa + Workbox
+- **Deployment**: Vercel
 
 ## Getting Started
 
@@ -115,11 +118,13 @@ This provides a consistent, easy-to-read view optimized for mobile devices.
 
 ## How It Works
 
-1. **First time**: Create a crew or join with a code
-2. **Onboarding**: Enter your nickname
-3. **Map view**: Your location is tracked and synced every 15 seconds
-4. **Real-time**: See other crew members' locations update live
-5. **Trails**: Breadcrumb trails show where everyone has been
+1. **Create or join a crew**: Use a simple crew code
+2. **Setup Overland GPS**: Download the free iOS app and paste your credentials
+3. **Start tracking**: Enable tracking in Overland app
+4. **View the map**: See your crew's real-time locations and trails
+5. **Privacy-first**: All location data stays in your Supabase database
+
+For detailed GPS setup instructions, see [OVERLAND_SETUP.md](./OVERLAND_SETUP.md)
 
 ## Development
 

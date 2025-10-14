@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { OnboardingScreen } from './components/OnboardingScreen'
-import { TraccarSetup } from './components/TraccarSetup'
+import { OverlandSetup } from './components/OverlandSetup'
 import { MapView } from './components/MapView'
 import { supabase } from './lib/supabase'
 import { storage } from './lib/storage'
@@ -107,9 +107,9 @@ function App() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [menuOpen, setMenuOpen] = useState(false)
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null)
-  const [showTraccarSetup, setShowTraccarSetup] = useState(false)
+  const [showOverlandSetup, setShowOverlandSetup] = useState(false)
 
-  // Browser geolocation disabled - using Traccar native apps only
+  // Browser geolocation disabled - using Overland GPS app only
   const position: { latitude: number; longitude: number; speed: number | null; accuracy: number | null } | null = null
 
   const recenterFnRef = useRef<(() => void) | null>(null)
@@ -235,8 +235,8 @@ function App() {
     }
   }, [localDriver])
 
-  // Browser location sync disabled - using Traccar webhook instead
-  // Location data comes from /api/traccar-webhook endpoint
+  // Browser location sync disabled - using Overland webhook instead
+  // Location data comes from /api/overland-webhook endpoint
 
   const handleJoinCrew = useCallback(async (code: string, nickname: string) => {
     // Check if crew exists
@@ -287,7 +287,7 @@ function App() {
 
     storage.setDriverData(driverData)
     setLocalDriver(driverData)
-    setShowTraccarSetup(true)
+    setShowOverlandSetup(true)
   }, [])
 
   const handleCreateCrew = useCallback(async (crewName: string, nickname: string) => {
@@ -334,7 +334,7 @@ function App() {
 
     storage.setDriverData(driverData)
     setLocalDriver(driverData)
-    setShowTraccarSetup(true)
+    setShowOverlandSetup(true)
   }, [])
 
   const handleRecenterReady = useCallback((fn: () => void) => {
@@ -358,13 +358,13 @@ function App() {
     )
   }
 
-  // Show Traccar setup screen after joining/creating crew
-  if (showTraccarSetup) {
+  // Show Overland setup screen after joining/creating crew
+  if (showOverlandSetup) {
     return (
-      <TraccarSetup
+      <OverlandSetup
         driverId={localDriver.driverId}
         nickname={localDriver.nickname}
-        onComplete={() => setShowTraccarSetup(false)}
+        onComplete={() => setShowOverlandSetup(false)}
       />
     )
   }
@@ -472,7 +472,7 @@ function App() {
                   <div className="profile-name">{localDriver.nickname}</div>
                   <div className="profile-subtitle">Code: {localDriver.crewCode}</div>
                   <div className="profile-subtitle" style={{ marginTop: '4px', fontSize: '11px', opacity: 0.7 }}>
-                    Using Traccar GPS
+                    Using Overland GPS
                   </div>
                 </div>
               </div>
