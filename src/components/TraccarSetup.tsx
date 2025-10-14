@@ -103,7 +103,7 @@ export const TraccarSetup = ({ driverId, onComplete }: TraccarSetupProps) => {
             </div>
 
             <div className="config-item">
-              <label>Server Address</label>
+              <label>Server URL</label>
               <div className="input-copy-group">
                 <input
                   type="text"
@@ -118,20 +118,38 @@ export const TraccarSetup = ({ driverId, onComplete }: TraccarSetupProps) => {
                   {copied === 'url' ? '✓' : '📋'}
                 </button>
               </div>
+              <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px', marginBottom: '0' }}>
+                Note: Make sure "Server URL" (not "Server Address") is set in Traccar
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Step 3: Enable */}
+        {/* Step 3: Configure Traccar Settings */}
         <div className="setup-section">
           <div className="section-title">
             <span className="step-badge">3</span>
+            <h2>Configure Traccar Settings</h2>
+          </div>
+          <ul className="checklist">
+            <li>Set Frequency to 5 seconds (for real-time tracking)</li>
+            <li>Set Distance to 0 meters</li>
+            <li>Set Angle to 0 degrees</li>
+            <li>Keep Location Provider on "Mixed"</li>
+          </ul>
+        </div>
+
+        {/* Step 4: Enable */}
+        <div className="setup-section">
+          <div className="section-title">
+            <span className="step-badge">4</span>
             <h2>Enable Tracking</h2>
           </div>
           <ul className="checklist">
             <li>Grant location permission (select "Always")</li>
-            <li>Toggle service status to ON</li>
-            <li>You'll see a tracking notification</li>
+            <li>Toggle service status to ON (green)</li>
+            <li>You'll see a tracking notification appear</li>
+            <li>Check status shows "Location update..."</li>
           </ul>
         </div>
 

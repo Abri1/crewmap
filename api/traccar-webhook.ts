@@ -14,6 +14,13 @@ interface TraccarLocation {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Log all incoming requests for debugging
+  console.log('Webhook received:', {
+    method: req.method,
+    query: req.query,
+    headers: req.headers,
+  })
+
   // Only accept POST requests
   if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -43,10 +50,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       deviceid,
     } = req.query as any
 
+    console.log('Parsed location data:', { lat, lon, deviceid })
+
     // Validate required fields
     if (!lat || !lon || !deviceid) {
+      console.error('Missing required fields:', { lat, lon, deviceid })
       return res.status(400).json({
         error: 'Missing required fields: lat, lon, deviceid',
+        received: { lat, lon, deviceid },
       })
     }
 
@@ -102,11 +113,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (!driverId || !crewId) {
+      console.error('Driver not found:', { deviceid, driverId, crewId })
       return res.status(404).json({
         error: 'Driver not found',
         hint: 'Set Device ID to "crew_code:nickname" or "driver_id" in Traccar app',
+        deviceIdReceived: deviceid,
       })
     }
+
+    console.log('Driver found:', { driverId, crewId, latitude, longitude })
 
     // Insert location
     const { error: insertError } = await supabase.from('locations').insert({
@@ -122,14 +137,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (insertError) {
       console.error('Insert error:', insertError)
-      return res.status(500).json({ error: 'Failed to save location' })
+      return res.status(500).json({ error: 'Failed to save location', details: insertError })
     }
+
+    console.log('Location saved successfully')
 
     // Update driver's last_seen
     await supabase
       .from('drivers')
       .update({ last_seen: new Date().toISOString() })
       .eq('id', driverId)
+
+    console.log('Driver last_seen updated')
 
     // Success response (Traccar expects 200 OK)
     return res.status(200).send('OK')
