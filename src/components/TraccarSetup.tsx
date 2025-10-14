@@ -85,7 +85,7 @@ export const TraccarSetup = ({ driverId, onComplete }: TraccarSetupProps) => {
 
           <div className="config-card">
             <div className="config-item">
-              <label>Device Identifier</label>
+              <label>Device Identifier (or "Identifier")</label>
               <div className="input-copy-group">
                 <input
                   type="text"
@@ -100,6 +100,9 @@ export const TraccarSetup = ({ driverId, onComplete }: TraccarSetupProps) => {
                   {copied === 'id' ? '✓' : '📋'}
                 </button>
               </div>
+              <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px', marginBottom: '0' }}>
+                In Traccar, this field might be called "Device Identifier", "Identifier", or "Device ID"
+              </p>
             </div>
 
             <div className="config-item">
@@ -119,7 +122,7 @@ export const TraccarSetup = ({ driverId, onComplete }: TraccarSetupProps) => {
                 </button>
               </div>
               <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px', marginBottom: '0' }}>
-                Note: Make sure "Server URL" (not "Server Address") is set in Traccar
+                In Traccar, this is the "Server URL" or "Server Address" field
               </p>
             </div>
           </div>

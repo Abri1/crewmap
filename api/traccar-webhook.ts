@@ -39,25 +39,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     // Traccar sends data as query parameters (OsmAnd protocol)
+    // OsmAnd protocol supports both 'id' and 'deviceid' parameters
     const {
       lat,
       lon,
       timestamp,
       speed,
       bearing,
+      heading,
       altitude,
       accuracy,
       deviceid,
+      id,
+      batt,
     } = req.query as any
 
-    console.log('Parsed location data:', { lat, lon, deviceid })
+    // Use either 'deviceid' or 'id' parameter
+    const deviceIdentifier = deviceid || id
+
+    console.log('Parsed location data:', { lat, lon, deviceIdentifier, allParams: req.query })
 
     // Validate required fields
-    if (!lat || !lon || !deviceid) {
-      console.error('Missing required fields:', { lat, lon, deviceid })
+    if (!lat || !lon || !deviceIdentifier) {
+      console.error('Missing required fields:', { lat, lon, deviceid, id })
       return res.status(400).json({
-        error: 'Missing required fields: lat, lon, deviceid',
-        received: { lat, lon, deviceid },
+        error: 'Missing required fields: lat, lon, and either deviceid or id',
+        received: { lat, lon, deviceid, id },
       })
     }
 
@@ -73,11 +80,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let driverId: string | null = null
     let crewId: string | null = null
 
-    // Check if deviceid matches a driver_id directly
+    // Check if deviceIdentifier matches a driver_id directly
     const { data: driverByID } = await supabase
       .from('drivers')
       .select('id, crew_id')
-      .eq('id', deviceid)
+      .eq('id', deviceIdentifier)
       .single()
 
     if (driverByID) {
@@ -85,8 +92,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       crewId = driverByID.crew_id
     } else {
       // Try parsing as "crew_code:nickname"
-      if (deviceid.includes(':')) {
-        const [crewCode, nickname] = deviceid.split(':')
+      if (deviceIdentifier.includes(':')) {
+        const [crewCode, nickname] = deviceIdentifier.split(':')
 
         // Find crew by code
         const { data: crew } = await supabase
@@ -113,17 +120,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (!driverId || !crewId) {
-      console.error('Driver not found:', { deviceid, driverId, crewId })
+      console.error('Driver not found:', { deviceIdentifier, driverId, crewId })
       return res.status(404).json({
         error: 'Driver not found',
-        hint: 'Set Device ID to "crew_code:nickname" or "driver_id" in Traccar app',
-        deviceIdReceived: deviceid,
+        hint: 'Set Device ID (or "Identifier" field) to your driver UUID in Traccar app',
+        deviceIdReceived: deviceIdentifier,
       })
     }
 
     console.log('Driver found:', { driverId, crewId, latitude, longitude })
 
     // Insert location
+    // Use either 'bearing' or 'heading' parameter for direction
+    const headingValue = bearing || heading
+
     const { error: insertError } = await supabase.from('locations').insert({
       driver_id: driverId,
       crew_id: crewId,
@@ -131,7 +141,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       longitude,
       accuracy: accuracy ? parseFloat(accuracy) : null,
       speed: speed ? parseFloat(speed) : null,
-      heading: bearing ? parseFloat(bearing) : null,
+      heading: headingValue ? parseFloat(headingValue) : null,
       timestamp: locationTimestamp,
     })
 
