@@ -60,10 +60,12 @@ export interface TraccarSession {
 }
 
 class TraccarAPI {
+  private sessionEstablished = false
+
   /**
    * Create a new session (login)
    */
-  async createSession(email: string, password: string): Promise<TraccarSession> {
+  async createSession(email: string = TRACCAR_EMAIL, password: string = TRACCAR_PASSWORD): Promise<TraccarSession> {
     const response = await fetch(`${TRACCAR_API}/session`, {
       method: 'POST',
       headers: {
@@ -77,7 +79,17 @@ class TraccarAPI {
       throw new Error('Failed to create Traccar session')
     }
 
+    this.sessionEstablished = true
     return response.json()
+  }
+
+  /**
+   * Ensure session exists before making requests
+   */
+  private async ensureSession(): Promise<void> {
+    if (!this.sessionEstablished) {
+      await this.createSession()
+    }
   }
 
   /**
@@ -223,15 +235,15 @@ class TraccarAPI {
   }
 
   /**
-   * Get positions for specific device unique IDs (no auth required on demo server)
+   * Get positions for specific device unique IDs
    */
   async getPositionsByUniqueIds(uniqueIds: string[]): Promise<Record<string, TraccarPosition>> {
     try {
-      // Get all devices with authentication
+      // Establish session first
+      await this.ensureSession()
+
+      // Get all devices with session authentication
       const devicesResponse = await fetch(`${TRACCAR_API}/devices`, {
-        headers: {
-          'Authorization': this.getAuthHeader(),
-        },
         credentials: 'include',
       })
 
@@ -249,11 +261,8 @@ class TraccarAPI {
         return {}
       }
 
-      // Get all positions with authentication
+      // Get all positions with session authentication
       const positionsResponse = await fetch(`${TRACCAR_API}/positions`, {
-        headers: {
-          'Authorization': this.getAuthHeader(),
-        },
         credentials: 'include',
       })
 
