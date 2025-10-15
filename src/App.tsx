@@ -301,7 +301,8 @@ function App() {
       .single()
 
     if (crewError || !crew) {
-      throw new Error('Failed to create crew')
+      console.error('Crew creation error:', crewError)
+      throw new Error(crewError?.message || 'Failed to create crew')
     }
 
     const color = DRIVER_COLORS[0]
@@ -320,7 +321,8 @@ function App() {
       .single()
 
     if (driverError || !driver) {
-      throw new Error('Failed to create driver')
+      console.error('Driver creation error:', driverError)
+      throw new Error(driverError?.message || 'Failed to create driver')
     }
 
     const driverData: LocalDriverData = {
