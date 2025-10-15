@@ -261,7 +261,7 @@ function App() {
         const positionsByDriverId = await response.json()
 
         // Sync each position to Supabase
-        for (const [driverId, position] of Object.entries(positionsByDriverId)) {
+        for (const [driverId, position] of Object.entries(positionsByDriverId) as [string, any][]) {
           // Check if we already have this exact position
           const { data: existing } = await supabase
             .from('locations')
