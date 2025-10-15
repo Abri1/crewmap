@@ -4,7 +4,6 @@ import { OverlandSetup } from './components/OverlandSetup'
 import { MapView } from './components/MapView'
 import { supabase } from './lib/supabase'
 import { storage } from './lib/storage'
-import { traccarAPI } from './lib/traccar'
 import type { Driver, Location, LocalDriverData } from './types'
 import './App.css'
 
@@ -236,7 +235,7 @@ function App() {
     }
   }, [localDriver])
 
-  // Poll Traccar demo server and sync positions to Supabase
+  // Poll Traccar server via proxy and sync positions to Supabase
   useEffect(() => {
     if (!localDriver || drivers.length === 0) return
 
@@ -245,8 +244,21 @@ function App() {
         // Get all driver IDs in this crew
         const driverIds = drivers.map(d => d.id)
 
-        // Fetch positions from Traccar using driver IDs as unique IDs
-        const positionsByDriverId = await traccarAPI.getPositionsByUniqueIds(driverIds)
+        // Fetch positions from Traccar via serverless proxy
+        const response = await fetch('/api/traccar-proxy', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ driverIds }),
+        })
+
+        if (!response.ok) {
+          console.error('Traccar proxy failed:', response.status)
+          return
+        }
+
+        const positionsByDriverId = await response.json()
 
         // Sync each position to Supabase
         for (const [driverId, position] of Object.entries(positionsByDriverId)) {
