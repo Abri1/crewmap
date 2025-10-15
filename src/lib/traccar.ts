@@ -60,8 +60,6 @@ export interface TraccarSession {
 }
 
 class TraccarAPI {
-  private sessionCookie: string | null = null
-
   /**
    * Create a new session (login)
    */
@@ -77,12 +75,6 @@ class TraccarAPI {
 
     if (!response.ok) {
       throw new Error('Failed to create Traccar session')
-    }
-
-    // Store session cookie
-    const cookies = response.headers.get('set-cookie')
-    if (cookies) {
-      this.sessionCookie = cookies
     }
 
     return response.json()
