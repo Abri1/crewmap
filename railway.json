@@ -1,9 +1,31 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
-  "name": "Traccar GPS Server",
-  "description": "Private Traccar GPS tracking server with PostgreSQL database for Crew Map",
+  "name": "Crew Map - Complete Stack",
+  "description": "Complete Crew Map deployment with web app, Traccar GPS server, and PostgreSQL",
   "repository": "https://github.com/Abri1/crewmap",
   "services": [
+    {
+      "name": "web",
+      "build": {
+        "builder": "NIXPACKS",
+        "buildCommand": "npm install && npm run build"
+      },
+      "start": {
+        "command": "npm run preview -- --host 0.0.0.0 --port $PORT"
+      },
+      "env": {
+        "VITE_SUPABASE_URL": "${SUPABASE_URL}",
+        "VITE_SUPABASE_ANON_KEY": "${SUPABASE_ANON_KEY}",
+        "VITE_MAPBOX_TOKEN": "${MAPBOX_TOKEN}",
+        "VITE_TRACCAR_SERVER": "https://${{RAILWAY_STATIC_URL}}",
+        "VITE_TRACCAR_EMAIL": "admin",
+        "VITE_TRACCAR_PASSWORD": "admin"
+      },
+      "healthcheck": {
+        "path": "/",
+        "port": 3000
+      }
+    },
     {
       "name": "traccar",
       "image": "traccar/traccar:latest",
@@ -29,7 +51,8 @@
         }
       ],
       "env": {
-        "JAVA_OPTS": "-Xms512m -Xmx512m"
+        "JAVA_OPTS": "-Xms512m -Xmx512m",
+        "DATABASE_URL": "jdbc:postgresql://postgres:5432/traccar?user=traccar&password=${DATABASE_PASSWORD}"
       },
       "healthcheck": {
         "path": "/api/server",
@@ -60,6 +83,18 @@
     }
   ],
   "variables": {
+    "SUPABASE_URL": {
+      "description": "Your Supabase project URL",
+      "required": true
+    },
+    "SUPABASE_ANON_KEY": {
+      "description": "Your Supabase anonymous key",
+      "required": true
+    },
+    "MAPBOX_TOKEN": {
+      "description": "Your Mapbox access token",
+      "required": true
+    },
     "DATABASE_PASSWORD": {
       "description": "Password for PostgreSQL database",
       "required": true,
