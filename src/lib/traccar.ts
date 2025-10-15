@@ -202,9 +202,8 @@ class TraccarAPI {
    * Helper to get Authorization header
    */
   private getAuthHeader(): string {
-    // Use environment credentials
-    const credentials = btoa(`${TRACCAR_EMAIL}:${TRACCAR_PASSWORD}`)
-    return `Basic ${credentials}`
+    // Demo server doesn't require auth for most operations
+    return ''
   }
 
   /**
