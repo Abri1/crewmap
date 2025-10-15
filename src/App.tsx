@@ -4,6 +4,7 @@ import { OverlandSetup } from './components/OverlandSetup'
 import { MapView } from './components/MapView'
 import { supabase } from './lib/supabase'
 import { storage } from './lib/storage'
+import { traccarAPI } from './lib/traccar'
 import type { Driver, Location, LocalDriverData } from './types'
 import './App.css'
 
@@ -235,8 +236,57 @@ function App() {
     }
   }, [localDriver])
 
-  // Browser location sync disabled - using Overland webhook instead
-  // Location data comes from /api/overland-webhook endpoint
+  // Poll Traccar demo server and sync positions to Supabase
+  useEffect(() => {
+    if (!localDriver || drivers.length === 0) return
+
+    const syncTraccarPositions = async () => {
+      try {
+        // Get all driver IDs in this crew
+        const driverIds = drivers.map(d => d.id)
+
+        // Fetch positions from Traccar using driver IDs as unique IDs
+        const positionsByDriverId = await traccarAPI.getPositionsByUniqueIds(driverIds)
+
+        // Sync each position to Supabase
+        for (const [driverId, position] of Object.entries(positionsByDriverId)) {
+          // Check if we already have this exact position
+          const { data: existing } = await supabase
+            .from('locations')
+            .select('id')
+            .eq('driver_id', driverId)
+            .eq('timestamp', position.fixTime)
+            .maybeSingle()
+
+          if (existing) continue // Already have this position
+
+          // Insert new location
+          await supabase.from('locations').insert({
+            driver_id: driverId,
+            crew_id: localDriver.crewId,
+            latitude: position.latitude,
+            longitude: position.longitude,
+            accuracy: position.accuracy,
+            speed: position.speed,
+            heading: position.course,
+            timestamp: position.fixTime,
+          })
+
+          console.log(`Synced position for driver ${driverId}`)
+        }
+      } catch (error) {
+        console.error('Traccar sync error:', error)
+      }
+    }
+
+    // Sync immediately
+    syncTraccarPositions()
+
+    // Then sync every 10 seconds
+    const interval = setInterval(syncTraccarPositions, 10000)
+
+    return () => clearInterval(interval)
+  }, [localDriver, drivers])
 
   const handleJoinCrew = useCallback(async (code: string, nickname: string) => {
     // Check if crew exists

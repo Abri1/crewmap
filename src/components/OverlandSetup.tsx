@@ -9,7 +9,7 @@ interface OverlandSetupProps {
 
 export const OverlandSetup = ({ driverId, onComplete }: OverlandSetupProps) => {
   const [copied, setCopied] = useState<'id' | 'url' | null>(null)
-  const serverUrl = `${window.location.origin}/api/overland-webhook`
+  const serverUrl = 'demo.traccar.org:5055'
 
   const handleCopy = async (text: string, type: 'id' | 'url') => {
     try {
@@ -35,18 +35,18 @@ export const OverlandSetup = ({ driverId, onComplete }: OverlandSetupProps) => {
         <div className="setup-header">
           <div className="setup-icon">📍</div>
           <h1>Setup GPS Tracking</h1>
-          <p>Install Overland to share your location with the crew</p>
+          <p>Install Traccar Client to share your location with the crew</p>
         </div>
 
         {/* Step 1: Download */}
         <div className="setup-section">
           <div className="section-title">
             <span className="step-badge">1</span>
-            <h2>Download Overland App</h2>
+            <h2>Download Traccar Client</h2>
           </div>
           <div className="download-grid">
             <a
-              href="https://apps.apple.com/us/app/overland-gps-tracker/id1292426766"
+              href="https://apps.apple.com/us/app/traccar-client/id843156974"
               target="_blank"
               rel="noopener noreferrer"
               className="download-card"
@@ -60,7 +60,7 @@ export const OverlandSetup = ({ driverId, onComplete }: OverlandSetupProps) => {
               </div>
             </a>
             <a
-              href="https://play.google.com/store/apps/details?id=com.openhumans.app.overland"
+              href="https://play.google.com/store/apps/details?id=org.traccar.client"
               target="_blank"
               rel="noopener noreferrer"
               className="download-card"
@@ -101,12 +101,12 @@ export const OverlandSetup = ({ driverId, onComplete }: OverlandSetupProps) => {
                 </button>
               </div>
               <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px', marginBottom: '0' }}>
-                Paste this into Overland's "Server URL" field
+                Paste this into Traccar Client's "Server URL" field
               </p>
             </div>
 
             <div className="config-item">
-              <label>Device ID</label>
+              <label>Device Identifier</label>
               <div className="input-copy-group">
                 <input
                   type="text"
@@ -122,7 +122,7 @@ export const OverlandSetup = ({ driverId, onComplete }: OverlandSetupProps) => {
                 </button>
               </div>
               <p style={{ fontSize: '12px', color: '#6c757d', marginTop: '8px', marginBottom: '0' }}>
-                Paste this into Overland's "Device ID" field
+                Paste this into Traccar Client's "Device identifier" field
               </p>
             </div>
           </div>
@@ -135,10 +135,10 @@ export const OverlandSetup = ({ driverId, onComplete }: OverlandSetupProps) => {
             <h2>Configure Location Settings</h2>
           </div>
           <ul className="checklist">
-            <li>Tracking Mode: Set to "Standard" (for detailed tracking)</li>
-            <li>Desired Accuracy: Set to "Best" or "Nav"</li>
-            <li>Logging Mode: Set to "All Data"</li>
-            <li>Locations per Batch: 50-200 (lower = more frequent uploads)</li>
+            <li>Location accuracy: Set to "High"</li>
+            <li>Frequency: 30 seconds recommended</li>
+            <li>Distance: 0 meters (always send)</li>
+            <li>Angle: 0 degrees (always send)</li>
           </ul>
         </div>
 
@@ -149,10 +149,10 @@ export const OverlandSetup = ({ driverId, onComplete }: OverlandSetupProps) => {
             <h2>Enable Tracking</h2>
           </div>
           <ul className="checklist">
-            <li>Grant "Always" location permission in iOS Settings</li>
-            <li>Toggle "Tracking Enabled" to ON in Overland</li>
+            <li>Grant "Always" location permission in Settings</li>
+            <li>Toggle "Service status" to ON in Traccar Client</li>
             <li>Your location will appear on the crew map</li>
-            <li>Check app shows successful uploads</li>
+            <li>Green indicator shows tracking is active</li>
           </ul>
         </div>
 

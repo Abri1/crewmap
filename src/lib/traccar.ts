@@ -1,9 +1,7 @@
 // Traccar Server Integration
-// Use environment variable or fallback to demo server
-const TRACCAR_SERVER = import.meta.env.VITE_TRACCAR_SERVER || 'https://demo.traccar.org'
+// Using demo server for simplicity
+const TRACCAR_SERVER = 'https://demo.traccar.org'
 const TRACCAR_API = `${TRACCAR_SERVER}/api`
-const TRACCAR_EMAIL = import.meta.env.VITE_TRACCAR_EMAIL || 'admin@crewmap.local'
-const TRACCAR_PASSWORD = import.meta.env.VITE_TRACCAR_PASSWORD || 'admin'
 
 export interface TraccarDevice {
   id: number
@@ -221,6 +219,57 @@ class TraccarAPI {
    */
   getDevicePort(): number {
     return 5055 // OsmAnd protocol default port
+  }
+
+  /**
+   * Get positions for specific device unique IDs (no auth required on demo server)
+   */
+  async getPositionsByUniqueIds(uniqueIds: string[]): Promise<Record<string, TraccarPosition>> {
+    try {
+      // Get all devices (public read on demo server)
+      const devicesResponse = await fetch(`${TRACCAR_API}/devices`, {
+        credentials: 'omit',
+      })
+
+      if (!devicesResponse.ok) {
+        return {}
+      }
+
+      const allDevices: TraccarDevice[] = await devicesResponse.json()
+
+      // Filter to only devices matching our unique IDs
+      const ourDevices = allDevices.filter(d => uniqueIds.includes(d.uniqueId))
+
+      if (ourDevices.length === 0) {
+        return {}
+      }
+
+      // Get all positions
+      const positionsResponse = await fetch(`${TRACCAR_API}/positions`, {
+        credentials: 'omit',
+      })
+
+      if (!positionsResponse.ok) {
+        return {}
+      }
+
+      const allPositions: TraccarPosition[] = await positionsResponse.json()
+
+      // Map positions by uniqueId (driver ID)
+      const positionsByUniqueId: Record<string, TraccarPosition> = {}
+
+      for (const device of ourDevices) {
+        const position = allPositions.find(p => p.deviceId === device.id)
+        if (position) {
+          positionsByUniqueId[device.uniqueId] = position
+        }
+      }
+
+      return positionsByUniqueId
+    } catch (error) {
+      console.error('Traccar fetch error:', error)
+      return {}
+    }
   }
 }
 
