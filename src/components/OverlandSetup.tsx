@@ -9,7 +9,7 @@ interface OverlandSetupProps {
 
 export const OverlandSetup = ({ driverId, onComplete }: OverlandSetupProps) => {
   const [copied, setCopied] = useState<'id' | 'url' | null>(null)
-  const serverUrl = 'demo.traccar.org:5055'
+  const serverUrl = 'server.traccar.org:5055'
 
   const handleCopy = async (text: string, type: 'id' | 'url') => {
     try {

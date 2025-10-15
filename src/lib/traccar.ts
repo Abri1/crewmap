@@ -1,7 +1,9 @@
 // Traccar Server Integration
-// Using demo server for simplicity
-const TRACCAR_SERVER = 'https://demo.traccar.org'
+// Using Traccar demo server with your account
+const TRACCAR_SERVER = 'https://server.traccar.org'
 const TRACCAR_API = `${TRACCAR_SERVER}/api`
+const TRACCAR_EMAIL = import.meta.env.VITE_TRACCAR_EMAIL || 'abribooysen@gmail.com'
+const TRACCAR_PASSWORD = import.meta.env.VITE_TRACCAR_PASSWORD || 'fyjndjcu'
 
 export interface TraccarDevice {
   id: number
@@ -202,8 +204,8 @@ class TraccarAPI {
    * Helper to get Authorization header
    */
   private getAuthHeader(): string {
-    // Demo server doesn't require auth for most operations
-    return ''
+    const credentials = btoa(`${TRACCAR_EMAIL}:${TRACCAR_PASSWORD}`)
+    return `Basic ${credentials}`
   }
 
   /**
@@ -225,12 +227,16 @@ class TraccarAPI {
    */
   async getPositionsByUniqueIds(uniqueIds: string[]): Promise<Record<string, TraccarPosition>> {
     try {
-      // Get all devices (public read on demo server)
+      // Get all devices with authentication
       const devicesResponse = await fetch(`${TRACCAR_API}/devices`, {
-        credentials: 'omit',
+        headers: {
+          'Authorization': this.getAuthHeader(),
+        },
+        credentials: 'include',
       })
 
       if (!devicesResponse.ok) {
+        console.error('Failed to fetch devices:', devicesResponse.status)
         return {}
       }
 
@@ -243,12 +249,16 @@ class TraccarAPI {
         return {}
       }
 
-      // Get all positions
+      // Get all positions with authentication
       const positionsResponse = await fetch(`${TRACCAR_API}/positions`, {
-        credentials: 'omit',
+        headers: {
+          'Authorization': this.getAuthHeader(),
+        },
+        credentials: 'include',
       })
 
       if (!positionsResponse.ok) {
+        console.error('Failed to fetch positions:', positionsResponse.status)
         return {}
       }
 
